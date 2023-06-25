@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Admin\Post;
 use App\Http\Requests\StorePostRequest;
 use App\Http\Requests\UpdatePostRequest;
+use App\Models\Admin\Category;
 use Illuminate\Support\Facades\Storage;
 
 
@@ -31,7 +32,10 @@ class PostController extends Controller
      */
     public function create()
     {
-        return view( 'admin.posts.create' );
+
+        $categories = Category::All();
+
+        return view('admin.posts.create', compact('categories'));
     }
 
     /**
@@ -59,14 +63,15 @@ class PostController extends Controller
 
         $form_data = $request->validated();
 
+        $form_data = $request->All();
+
         $slug = Post::titleToSlug($request->title);
 
-        $form_data = $request->All();
 
         $form_data['slug'] = $slug;
 
-        if( $request->hasFile('cover_image') ){
-            $img = Storage::disk('public')->put( 'post_images', $request->cover_image );
+        if ($request->hasFile('cover_image')) {
+            $img = Storage::disk('public')->put('post_images', $request->cover_image);
             $form_data['cover_image'] = $img;
         }
 
@@ -84,9 +89,9 @@ class PostController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function show(Post $post)
-    {   
+    {
 
-        
+
         return view('admin.posts.show', compact('post'));
     }
 
@@ -98,7 +103,9 @@ class PostController extends Controller
      */
     public function edit(Post $post)
     {
-        return view( 'admin.posts.update', compact( 'post' ) );
+        $categories = Category::All();
+
+        return view('admin.posts.update', compact('post', 'categories'));
     }
 
     /**
@@ -114,13 +121,13 @@ class PostController extends Controller
         $form_data = $request->All();
         $slug = Post::titleToSlug($request->title);
         $form_data['slug'] = $slug;
-        if( $request->hasFile('cover_image') ){
+        if ($request->hasFile('cover_image')) {
 
-            if( $post->cover_image ){
-                Storage::delete( $post->cover_image );
+            if ($post->cover_image) {
+                Storage::delete($post->cover_image);
             }
 
-            $img = Storage::disk('public')->put( 'post_images', $request->cover_image );
+            $img = Storage::disk('public')->put('post_images', $request->cover_image);
             $form_data['cover_image'] = $img;
         }
 
@@ -137,15 +144,13 @@ class PostController extends Controller
      */
     public function destroy(Post $post)
     {
-        
-        if( $post->cover_image ){
 
-            Storage::delete( $post->cover_image );
+        if ($post->cover_image) {
 
+            Storage::delete($post->cover_image);
         }
 
         $post->delete();
         return redirect()->route('admin.posts.index');
-
     }
 }
